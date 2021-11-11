@@ -8,13 +8,13 @@ public class Player {
 
     private String name;
     private ArrayList<Card> hand;
-    private int money;
+    private double money;
     private int betAmount;
     private PokerHand pokerHand;
 
     public Player(String name) {
         this.name = name;
-        this.money = 1000;
+        this.money = 1000.0;
         this.betAmount = 0;
         this.hand = new ArrayList<>();
         this.pokerHand = new PokerHand("");
@@ -35,7 +35,7 @@ public class Player {
     }
 
     public int chooseBetAmount(int min) {
-        int choice = Dialogs.getIntInput("Choose bet amount (" + min + "-" + money + ")");
+        int choice = Dialogs.getIntInput(name + ", choose bet amount (" + min + "-" + (int)money + ")");
         betAmount = choice;
         money -= choice;
         return choice;
@@ -46,7 +46,7 @@ public class Player {
         betAmount += amount;
     }
 
-    public void addWinnings(int amount) {
+    public void addWinnings(double amount) {
         money += amount;
     }
 
@@ -169,6 +169,10 @@ public class Player {
         }
     }
 
+    public void clearPokerHand() {
+        this.pokerHand = new PokerHand("");
+    }
+
     public String getName() {
         return name;
     }
@@ -187,5 +191,9 @@ public class Player {
 
     public PokerHand getPokerHand() {
         return this.pokerHand;
+    }
+
+    public double getMoney() {
+        return this.money;
     }
 }

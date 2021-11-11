@@ -6,8 +6,25 @@ public class Dialogs {
 
     private static Scanner scanner = new Scanner(System.in);
 
+    public static String getStringInput(String prompt) {
+        System.out.println("-".repeat(50));
+        System.out.println(prompt);
+        System.out.println("-".repeat(50));
+        String input;
+        while (true) {
+            System.out.print(">> ");
+            input = scanner.nextLine();
+            if (input.isEmpty()) {
+                System.out.println("Wrong input!");
+            } else {
+                break;
+            }
+        }
+        return input;
+    }
+
     public static int getIntInput(String... options) {
-        System.out.println("-".repeat(20));
+        System.out.println("-".repeat(50));
         if (options.length > 1) {
             for (int i = 1; i <= options.length; i++) {
                 System.out.println(i+". "+options[i-1]);
@@ -15,10 +32,10 @@ public class Dialogs {
         } else {
             System.out.println(options[0]);
         }
-        System.out.println("-".repeat(20));
-        System.out.print(">> ");
+        System.out.println("-".repeat(50));
         int choice;
         while (true) {
+            System.out.print(">> ");
             try {
                 choice = Integer.parseInt(scanner.nextLine());
                 break;
@@ -30,7 +47,7 @@ public class Dialogs {
     }
 
     public static int[] getIntArrayInput(String... options) {
-        System.out.println("-".repeat(20));
+        System.out.println("-".repeat(50));
         if (options.length > 1) {
             for (int i = 1; i <= options.length; i++) {
                 System.out.println(i+". "+options[i-1]);
@@ -38,7 +55,7 @@ public class Dialogs {
         } else {
             System.out.println(options[0]);
         }
-        System.out.println("-".repeat(20));
+        System.out.println("-".repeat(50));
         int[] choices = new int[options.length];
         int choice = -1;
         for (int i = 0; i < options.length; i++) {

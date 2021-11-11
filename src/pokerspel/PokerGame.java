@@ -5,36 +5,22 @@ import java.util.*;
 public class PokerGame {
 
     private Deck deck;
-    private LinkedList<Player> playerQueue;
-    private Scanner scanner;
-    private int pot;
+    private LinkedList<Player> players;
+    private double pot;
 
     public PokerGame() {
         this.pot = 0;
-        this.scanner = new Scanner(System.in);
         this.deck = new Deck();
-        this.playerQueue = new LinkedList<>();
+        this.players = new LinkedList<>();
         initialisePlayers();
         showMenu();
     }
 
     private void initialisePlayers() {
-        int numberOfPlayers;
-        while (true) {
-            System.out.print("Input number of players: ");
-            try {
-                numberOfPlayers = Integer.parseInt(scanner.nextLine());
-                if (numberOfPlayers > 1 && numberOfPlayers < 5) {
-                    break;
-                }
-            } catch (Exception ignore) {
-                System.out.println("Wrong input!");
-            }
-        }
+        int numberOfPlayers = Dialogs.getIntInput("Input number of players: ");
         for (int i = 0; i < numberOfPlayers; i++) {
-            System.out.print("Input player's name: ");
-            String name = scanner.nextLine();
-            playerQueue.add(new Player(name));
+            String name = Dialogs.getStringInput("Input player's name: ");
+            players.add(new Player(name));
         }
     }
 
@@ -42,22 +28,33 @@ public class PokerGame {
         int choice = Dialogs.getIntInput("Deal cards", "Place bets");
         switch (choice) {
             case 1:
-                dealCards();
-                newEvaluateGame(0);
+                LinkedList<Player> playerQueue2 = new LinkedList<>(players);
+                dealCards(playerQueue2);
+                newEvaluateGame(0, playerQueue2);
                 break;
             case 2:
-                dealCards();
-                pot = placeBets();
-                if (playerQueue.size() > 1) {
-                    changeCards();
-                    placeBets();
+                while (players.size() > 1) {
+                    LinkedList<Player> playerQueue = new LinkedList<>(players);
+                    dealCards(playerQueue);
+                    pot = placeBets(playerQueue);
+                    if (playerQueue.size() > 1) {
+                        changeCards(playerQueue);
+                        placeBets(playerQueue);
+                    }
+                    newEvaluateGame(pot, playerQueue);
+                    players.removeIf(p -> p.getMoney() <= 0);
+                    for (Player p : players) {
+                        p.getHand().clear();
+                        p.clearPokerHand();
+                    }
+                    this.deck = new Deck();
+                    this.pot = 0.0;
                 }
-                newEvaluateGame(pot);
                 break;
         }
     }
 
-    private int placeBets() {
+    private double placeBets(LinkedList<Player> playerQueue) {
         for (Player p : playerQueue) {
             p.setBetAmount(0);
         }
@@ -67,21 +64,25 @@ public class PokerGame {
         while (playerQueue.size() > 1 && control) {
             Player p = playerQueue.pollFirst();
             int decision;
-            System.out.println("-".repeat(20));
-            System.out.println(p.getName() + ", your turn!");
-            System.out.println("-".repeat(20));
-            System.out.println("Your hand:\n");
+            System.out.println("-".repeat(50));
+            System.out.println(p.getName() + ", it's your turn now! You have $" + p.getMoney() + " left.");
+            System.out.println("-".repeat(50));
+            System.out.println("Your hand:");
             p.showHand();
+            System.out.println("-".repeat(50));
+            System.out.println("Current pot: $" + pot);
             if (currentBet == 0) {
                 decision = Dialogs.getIntInput("Place bet", "Fold");
                 switch (decision) {
                     case 1:
                         int betAmount = p.chooseBetAmount(1);
+                        System.out.println(p.getName() + ", you bet $" + betAmount);
                         pot += betAmount;
                         currentBet = betAmount;
                         playerQueue.offerLast(p);
                         break;
                     case 2:
+                        System.out.println(p.getName() + ", you folded.");
                         break;
                 }
             } else {
@@ -90,40 +91,44 @@ public class PokerGame {
                     decision = Dialogs.getIntInput("Check", "Raise", "Fold");
                     switch (decision) {
                         case 1:
-                            System.out.println("You checked.");
-                            System.out.println("-".repeat(20));
+                            System.out.println(p.getName() + ", you checked.");
+                            System.out.println("-".repeat(50));
                             //pot += call;
                             //p.call(call);
                             playerQueue.offerLast(p);
                             break;
                         case 2:
-                            int betAmount = p.chooseBetAmount(currentBet*2);
+                            int betAmount = p.chooseBetAmount(currentBet+1);
+                            System.out.println(p.getName() + ", you raised by $" + (betAmount-currentBet));
                             pot += betAmount;
                             currentBet = betAmount;
                             p.setBetAmount(betAmount);
                             playerQueue.offerLast(p);
                             break;
                         case 3:
+                            System.out.println(p.getName() + ", you folded.");
                             break;
                     }
                 } else {
-                    decision = Dialogs.getIntInput("Call " + call, "Raise", "Fold");
+                    decision = Dialogs.getIntInput("Call $" + call, "Raise", "Fold");
                     switch (decision) {
                         case 1:
-                            System.out.println("You called.");
-                            System.out.println("-".repeat(20));
+                            System.out.println(p.getName() + ", you called with $" + call);
+                            System.out.println("-".repeat(50));
                             pot += call;
                             p.call(call);
                             playerQueue.offerLast(p);
                             break;
                         case 2:
-                            int betAmount = p.chooseBetAmount(currentBet*2);
+                            int betAmount = p.chooseBetAmount(currentBet+1);
+                            System.out.println(p.getName() + ", you raised by $" + (betAmount-currentBet));
                             pot += betAmount;
                             currentBet = betAmount;
                             p.setBetAmount(betAmount);
                             playerQueue.offerLast(p);
                             break;
                         case 3:
+                            System.out.println(p.getName() + ", you folded.");
                             break;
                     }
                 }
@@ -142,7 +147,7 @@ public class PokerGame {
         return pot;
     }
 
-    private void dealCards() {
+    private void dealCards(LinkedList<Player> playerQueue) {
         for (Player p : playerQueue) {
             for (int i = 0; i < 5; i++) {
                 Card c = deck.drawCard();
@@ -151,14 +156,16 @@ public class PokerGame {
         }
     }
 
-    private void changeCards() {
+    private void changeCards(LinkedList<Player> playerQueue) {
         for (Player player : playerQueue) {
             ArrayList<String> cards = new ArrayList<>();
             for (Card c : player.getHand()) {
                 cards.add(c.toString());
             }
             ArrayList<Card> toRemove = new ArrayList<>();
+            System.out.println(player.getName() + ", your hand:");
             int[] choices = Dialogs.getIntArrayInput(cards.toArray(new String[0]));
+            System.out.println("-".repeat(50));
             for (int i : choices) {
                 if (i == 0) {
                     continue;
@@ -173,7 +180,7 @@ public class PokerGame {
         }
     }
 
-    private void newEvaluateGame(int pot) {
+    private void newEvaluateGame(double pot, LinkedList<Player> playerQueue) {
         for (Player p : playerQueue) {
             p.evaluateHand();
         }
@@ -190,24 +197,27 @@ public class PokerGame {
             }
             LinkedList<Player> winners;
             winners = evaluateWinners(playerQueue);
-            System.out.println("-".repeat(20));
+            System.out.println("-".repeat(50));
             if (winners.size() > 1) {
                 System.out.println("Draw: ");
                 double winnings = (double) pot / winners.size();
                 for (Player winner : winners) {
                     System.out.println(winner.getName() + " - " + winner.getPokerHand().getName());
+                    winner.addWinnings(winnings);
                 }
                 System.out.println("You get " + winnings + " each");
             } else {
+                winners.get(0).addWinnings(pot);
                 System.out.println(winners.get(0).getName() + " - " + winners.get(0).getPokerHand().getName() +
                         "\nYou won! You got " + pot);
             }
         } else {
+            playerQueue.get(0).addWinnings(pot);
             System.out.println(playerQueue.get(0).getName() + ", you won! You got " + pot);
         }
     }
 
-    private void evaluateGame(int pot) {
+    /*private void evaluateGame(int pot) {
         ArrayList<Integer> intResults = new ArrayList<>();
         ArrayList<String> stringResults = new ArrayList<>();
         for (int i = 0; i < playerQueue.size(); i++) {
@@ -248,7 +258,7 @@ public class PokerGame {
                 lowest = intResults.get(i);
             }
         }
-        System.out.println("-".repeat(20));
+        System.out.println("-".repeat(50));
         if (indices.size() > 1) {
             System.out.println("Draw: ");
             double winnings = (double) pot / indices.size();
@@ -259,7 +269,7 @@ public class PokerGame {
         } else {
             System.out.println(playerQueue.get(indices.get(0)).getName() + ", you won! You got " + pot);
         }
-    }
+    }*/
     private String evaluateResult(int result) {
         String resultText = "";
         switch (result) {
