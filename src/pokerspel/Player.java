@@ -11,13 +11,17 @@ public class Player {
     private double money;
     private int betAmount;
     private PokerHand pokerHand;
+    private ArrayList<PlayerRole> roles;
+    private boolean betEqualised;
 
     public Player(String name) {
         this.name = name;
         this.money = 1000.0;
         this.betAmount = 0;
+        this.betEqualised = false;
         this.hand = new ArrayList<>();
         this.pokerHand = new PokerHand("");
+        this.roles = new ArrayList<>();
     }
 
     public void giveCard(Card card) {
@@ -86,7 +90,7 @@ public class Player {
     private boolean isStraight(ArrayList<Card> cards) {
         int match = 0;
         for (int i = 1; i < cards.size(); i++) {
-            if (cards.get(i).getRank().getRank() == cards.get(i-1).getRank().getRank()+1) {
+            if (cards.get(i).getRank().getRank()+1 == cards.get(i-1).getRank().getRank()) {
                 match += 1;
             }
         }
@@ -187,6 +191,7 @@ public class Player {
 
     public void setBetAmount(int betAmount) {
         this.betAmount = betAmount;
+        this.money -= betAmount;
     }
 
     public PokerHand getPokerHand() {
@@ -196,4 +201,28 @@ public class Player {
     public double getMoney() {
         return this.money;
     }
+
+    public ArrayList<PlayerRole> getRoles() {
+        return this.roles;
+    }
+
+    public boolean isBetEqualised() {
+        return this.betEqualised;
+    }
+
+    public void setBetEqualised(boolean betEqualised) {
+        this.betEqualised = betEqualised;
+    }
+
+    public void addRole(PlayerRole role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(PlayerRole role) {
+        this.roles.remove(role);
+    }
+    public void removeAllRoles() {
+        this.roles.clear();
+    }
+
 }
