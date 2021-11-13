@@ -1,5 +1,7 @@
 package pokerspel;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class PokerGame {
@@ -12,8 +14,8 @@ public class PokerGame {
 
     public PokerGame() {
         this.pot = 0;
-        this.smallBlind = 2;
-        this.bigBlind = 4;
+        this.smallBlind = 5;
+        this.bigBlind = 10;
         this.deck = new Deck();
         this.players = new LinkedList<>();
         initialisePlayers();
@@ -37,7 +39,16 @@ public class PokerGame {
                 newEvaluateGame(0, playerQueue2);
                 break;
             case 2:
+                Instant start = Instant.now();
                 while (players.size() > 1) {
+                    if (Duration.between(start, Instant.now()).toMinutes() >= 15) {
+                        this.smallBlind *= 2;
+                        this.bigBlind *= 2;
+                        System.out.println("-".repeat(50));
+                        System.out.println("The blinds have been raised.");
+                        System.out.println("-".repeat(50));
+                        start = Instant.now();
+                    }
                     LinkedList<Player> playerQueue = new LinkedList<>(players);
                     assignRoles(playerQueue);
                     dealCards(playerQueue);
