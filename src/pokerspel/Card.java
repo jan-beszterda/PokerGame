@@ -2,12 +2,6 @@ package pokerspel;
 
 public class Card {
 
-    /*Skapa en Card klass med två enums:
-
-    Suite (Hearts, Spades, Clubs, Diamonds)
-    Rank (Two, … King, Ace)
-    En konstruktor som tar in dessa värden och skapar kortet.*/
-
     enum Suite {
         HEARTS("Hearts"), SPADES("Spades"), CLUBS("Clubs"), DIAMONDS("Diamonds");
 
